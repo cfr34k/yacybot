@@ -79,7 +79,7 @@ class YaCyBot(SingleServerIRCBot):
               result = query.getResult(i)
               self.send_msg(c, self.channel, str(i) + ": " + result['link'])
         except Exception as ex:
-          traceback.print_last()
+          traceback.print_exc()
           self.send_msg(c, self.channel, "Oops, an error occurred while processing the request:")
           self.send_msg(c, self.channel, str(ex))
 
