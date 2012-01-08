@@ -67,7 +67,7 @@ class YaCyBot(SingleServerIRCBot):
           numresults = query.request()
 
           if numresults == 0:
-            self.send_msg(c, self.channel, nick + ": No results for your query \"" + querystr + "\":")
+            self.send_msg(c, self.channel, nick + ": No results for your query \"" + querystr + "\".")
           else:
             numtotalresults = query.getNumTotalResults()
             self.last_query = query
@@ -130,7 +130,10 @@ Every command can be abbreviated with a single letter (i.e. !h for !help)""")
   def send_msg(self, c, target, msg):
     sleep_time = IRC_MIN_DELAY - (time.time() - self.last_msg_time)
 
-    c.privmsg(target, msg.encode('utf-8'))
+    try:
+      c.privmsg(target, msg.encode('utf-8'))
+    except:
+      c.privmsg(target, msg)
 
     if sleep_time > 0:
       time.sleep(sleep_time)
