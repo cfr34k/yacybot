@@ -11,6 +11,7 @@
 
 import urllib, urllib2
 import json
+import re
 
 from config import *
 
@@ -30,6 +31,9 @@ class YaCyQuery:
     # initalize attributes
     self.results = []
     self.totalresults = 0
+
+    # precompile the number cleanup pattern
+    self.numbercleanup = re.compile('[^0-9]+')
 
   # add or change an URL parameter
   def setParam(self, key, value):
@@ -53,8 +57,11 @@ class YaCyQuery:
     # decode the JSON data
     jsonobj = json.loads(jsondata)
 
+    # remove non-numeric characters from the total number of results
+    cleanedtotal = self.numbercleanup.sub('', jsonobj['channels'][0]['totalResults'])
+
     # store the relevant data in class members
-    self.totalresults = int(jsonobj['channels'][0]['totalResults'].replace(".", ""))
+    self.totalresults = int(cleanedtotal)
     self.results = jsonobj['channels'][0]['items']
 
     return len(self.results)
