@@ -18,5 +18,11 @@ IRC_MIN_DELAY = 0.8
 
 YACY_ADDRESS     = "localhost" # Hostname / IP of the YaCy-Peer
 YACY_PORT        = 8080        # Port of the YaCy-Peer
-YACY_NUM_RESULTS = 5           # Maximum number of results to show for each
-                               # query
+
+# Default parameters for the request URL
+YACY_DEFAULT_PARAMS = {
+  'startRecord':    "0",
+  'verify':         "true",
+  'resource':       "global",
+  'maximumRecords': "5"
+  }

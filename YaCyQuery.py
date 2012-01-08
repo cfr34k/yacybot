@@ -20,13 +20,8 @@ from config import *
 class YaCyQuery:
   def __init__(self, query):
     # default parameters for the yacy request
-    self.urlparams = {
-        'query': query,
-        'startRecord': "0",
-        'verify': "true",
-        'resource': "global",
-        'maximumRecords': str(YACY_NUM_RESULTS)
-        }
+    self.urlparams = YACY_DEFAULT_PARAMS
+    self.urlparams['query'] = query
 
     # initalize attributes
     self.results = []
