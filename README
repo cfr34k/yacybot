@@ -1,0 +1,31 @@
+The YaCy IRC Bot
+================
+
+This is a little IRC bot written in Python which can search a YaCy peer and
+output the results to a IRC channel.
+
+Additional requirements
+-----------------------
+
+The script depends on two libraries that are not included in python and have to
+be installed separately:
+
+- The Python IRC library (http://python-irclib.sourceforge.net/). You need at
+  least irclib.py and ircbot.py. Only version 0.4.8 was tested.
+
+- html2text (http://www.aaronsw.com/2002/html2text/). Commit ID
+  c368b1491c2829b5c48c384c3316edcab43778b6 was tested.
+
+Configuration
+-------------
+
+All configuration variables for the bot are in config.py. Just edit them as you
+like.
+
+License
+-------
+
+"THE PIZZA-WARE LICENSE" (derived from "THE BEER-WARE LICENCE"):
+<cfr34k-yacy@tkolb.de> wrote this file. As long as you retain this notice you
+can do whatever you want with this stuff. If we meet some day, and you think
+this stuff is worth it, you can buy me a pizza in return. - Thomas Kolb
