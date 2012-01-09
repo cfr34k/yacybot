@@ -140,6 +140,12 @@ Every command can be abbreviated with a single letter (i.e. !h for !help)""")
     self.ping_timer = Timer(IRC_PING_INTERVAL, self.send_ping, [c]);
     self.ping_timer.start();
 
+  def shutdown(self):
+    print "shutting down."
+    if self.ping_timer:
+      self.ping_timer.cancel()
+    self.disconnect("Quitting on user request.")
+
   # send a message and wait for some time to bypass flood protection
   def send_msg(self, c, target, msg):
     sleep_time = IRC_MIN_DELAY - (time.time() - self.last_msg_time)
@@ -175,8 +181,11 @@ Every command can be abbreviated with a single letter (i.e. !h for !help)""")
 def main() :
   print "starting up..."
 
-  bot = YaCyBot(IRC_CHANNEL, IRC_NICK, IRC_SERVER, IRC_PORT)
-  bot.start()
+  try:
+    bot = YaCyBot(IRC_CHANNEL, IRC_NICK, IRC_SERVER, IRC_PORT)
+    bot.start()
+  except KeyboardInterrupt:
+    bot.shutdown()
 
 if __name__ == "__main__" :
   main()
