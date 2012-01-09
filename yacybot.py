@@ -31,6 +31,7 @@ class YaCyBot(SingleServerIRCBot):
     self.channel = channel
     self.last_msg_time = 0
     self.last_query = None
+    self.ping_timer = None
     print "done"
 
   def on_nicknameinuse(self, c, e) :
@@ -41,6 +42,13 @@ class YaCyBot(SingleServerIRCBot):
   def on_welcome(self, c, e) :
     print u"joining ", self.channel
     c.join(self.channel)
+
+    if self.ping_timer:
+      self.ping_timer.cancel()
+
+    if IRC_PING_INTERVAL != 0:
+      self.ping_timer = Timer(IRC_PING_INTERVAL, self.send_ping, [c])
+      self.ping_timer.start()
 
   def on_pubmsg(self, c, e) :
     nick = nm_to_n(e.source())
@@ -125,6 +133,12 @@ Every command can be abbreviated with a single letter (i.e. !h for !help)""")
 
       if nick in self._active_users:
         self._answers[nick].append(message)
+
+  def send_ping(self, c):
+    # send a /ping command to the server and restart the timer
+    c.ping(self.channel);
+    self.ping_timer = Timer(IRC_PING_INTERVAL, self.send_ping, [c]);
+    self.ping_timer.start();
 
   # send a message and wait for some time to bypass flood protection
   def send_msg(self, c, target, msg):

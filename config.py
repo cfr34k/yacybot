@@ -16,6 +16,10 @@ IRC_CHANNEL = "#yacytest" # The channel to join
 # Increase this if the server drops messages because of flood protection
 IRC_MIN_DELAY = 0.8
 
+# If this is not zero, a /ping command is sent to the server every
+# IRC_PING_INTERVAL seconds
+IRC_PING_INTERVAL = 300
+
 YACY_ADDRESS     = "localhost" # Hostname / IP of the YaCy-Peer
 YACY_PORT        = 8080        # Port of the YaCy-Peer
 
