@@ -25,13 +25,19 @@ from YaCyQuery import YaCyQuery
 from config import *
 
 class YaCyBot(SingleServerIRCBot):
-  def __init__(self, channel, nickname, server, port=6667):
+  def __init__(self, channel_list, nickname, server, port=6667):
     print "initializing... ",
     SingleServerIRCBot.__init__(self, [(server, port)], nickname, nickname)
-    self.channel = channel
-    self.last_msg_time = 0
-    self.last_query = None
-    self.ping_timer = None
+    self.channels_to_join = channel_list
+
+    self.last_msg_time = 0 # timestamp of the last message sent, so the next
+                           # one can be delayed, if necessary
+
+    self.last_queries = {} # this stores the last query for everyone who asks
+                           # about results (i.e. channels and queries)
+
+    self.ping_timer = None # handle of the client->server ping timer
+    self.ping_channel = channel_list[0] # name of the ping target
     print "done"
 
   def on_nicknameinuse(self, c, e) :
@@ -40,20 +46,40 @@ class YaCyBot(SingleServerIRCBot):
     print s
 
   def on_welcome(self, c, e) :
-    print u"joining ", self.channel
-    c.join(self.channel)
+    # clear the last-query list
+    self.last_queries = {}
 
+    # join all the channels
+    for channel in self.channels_to_join:
+      print u"joining ", channel
+      c.join(channel)
+
+    # stop the old ping timer, if one is running
     if self.ping_timer:
       self.ping_timer.cancel()
 
+    # start the new one
     if IRC_PING_INTERVAL != 0:
+      # ping the first joined channel for keep-alive
       self.ping_timer = Timer(IRC_PING_INTERVAL, self.send_ping, [c])
       self.ping_timer.start()
 
   def on_pubmsg(self, c, e) :
+    # process messages from the joined channels
+    nick = nm_to_n(e.source())
+    channel = e.target()
+    message = e.arguments()[0]
+
+    self.process_message(c, nick, channel, message, True)
+
+  def on_privmsg(self, c, e) :
+    # process messages from queries
     nick = nm_to_n(e.source())
     message = e.arguments()[0]
 
+    self.process_message(c, nick, nick, message, False)
+
+  def process_message(self, c, nick, reply_to, message, is_public = True):
     # messages starting with a '!' are considered bot requests
     if message[0] == '!':
       # split message in command (first word) and parameters
@@ -66,6 +92,11 @@ class YaCyBot(SingleServerIRCBot):
 
       print "Executing command:", message[1:]
 
+      if is_public:
+        highlight_str = nick + ": "
+      else:
+        highlight_str = ""
+
       # interpret the commands
       if command == 'y' or command == 'yacy':
         # build and send the query
@@ -75,68 +106,61 @@ class YaCyBot(SingleServerIRCBot):
           numresults = query.request()
 
           if numresults == 0:
-            self.send_msg(c, self.channel, nick + ": No results for your query \"" + querystr + "\".")
+            self.send_msg(c, reply_to, highlight_str + "No results for your query \"" + querystr + "\".")
           else:
             numtotalresults = query.getNumTotalResults()
-            self.last_query = query
+            self.last_queries[reply_to] = query
 
             # print the results
-            self.send_msg(c, self.channel, nick + ": The first " + str(numresults) + " results (" + str(numtotalresults) + " total) for your query \"" + querystr + "\":")
+            self.send_msg(c, reply_to, highlight_str + "The first " + str(numresults) + " results (" + str(numtotalresults) + " total) for your query \"" + querystr + "\":")
 
             for i in range(numresults):
               result = query.getResult(i)
-              self.send_msg(c, self.channel, str(i) + ": " + result['link'])
+              self.send_msg(c, reply_to, str(i) + ": " + result['link'])
         except Exception as ex:
           traceback.print_exc()
-          self.send_msg(c, self.channel, "Oops, an error occurred while processing the request:")
-          self.send_msg(c, self.channel, str(ex))
-
+          self.send_msg(c, reply_to, "Oops, an error occurred while processing the request:")
+          self.send_msg(c, reply_to, str(ex))
 
       elif command == 'd' or command == 'details':
         # check for some errors
-        if not self.last_query:
-          self.send_msg(c, self.channel, "No search was requested yet or no results where returned.")
+        if not self.last_queries[reply_to]:
+          self.send_msg(c, reply_to, "No search was requested yet or no results where returned.")
         elif len(params) < 1:
-          self.send_msg(c, self.channel, "!details requires the result index as parameter.")
-        elif int(params[0]) >= self.last_query.getNumResults():
-          self.send_msg(c, self.channel, "Index is out of range (only " + str(self.last_query.getNumResults()) + " results found).")
+          self.send_msg(c, reply_to, "!details requires the result index as parameter.")
+        elif int(params[0]) >= self.last_queries[reply_to].getNumResults():
+          self.send_msg(c, reply_to, "Index is out of range (only " + str(self.last_queries[reply_to].getNumResults()) + " results found).")
         else:
           # everything ok -> show the requested result's details
           resultIndex = int(params[0])
-          result = self.last_query.getResult(resultIndex)
+          result = self.last_queries[reply_to].getResult(resultIndex)
 
           # clean up the description
           description = html2text.html2text(result['description'])
 
           # show the results
-          self.send_msg(c, self.channel, "Title: " + result['title'])
-          self.send_msg(c, self.channel, "URL:   " + result['link'])
-          self.send_msg(c, self.channel, "Date:  " + result['pubDate'])
-          self.send_msg(c, self.channel, "Size:  " + result['sizename'])
-          self.send_msg(c, self.channel, "Description: " + description)
+          self.send_msg(c, reply_to, "Title: " + result['title'])
+          self.send_msg(c, reply_to, "URL:   " + result['link'])
+          self.send_msg(c, reply_to, "Date:  " + result['pubDate'])
+          self.send_msg(c, reply_to, "Size:  " + result['sizename'])
+          self.send_msg(c, reply_to, "Description: " + description)
 
       elif command == 'l' or command == 'license':
-        self.send_multiline(c, self.channel, LICENSE)
+        self.send_multiline(c, reply_to, LICENSE)
       elif command == 'h' or command == 'help':
-        self.send_multiline(c, self.channel, u"""Here are the commands I understand:
+        self.send_multiline(c, reply_to, u"""Here are the commands I understand:
 !help            - Show this help
 !yacy <keywords> - Search for <keywords>
 !details <N>     - Print more details for the Nth result from the last query
 !license         - Show the license for this program
 Every command can be abbreviated with a single letter (i.e. !h for !help)""")
       else:
-        self.send_msg(c, self.channel, nick + u": I don't know what you mean. Please ask for !help ;-)")
+        self.send_msg(c, reply_to, highlight_str + "I don't know what you mean. Please ask for !help ;-)")
 
-  def on_privmsg(self, c, e) :
-      nick = nm_to_n(e.source())
-      message = e.arguments()[0].decode('utf-8')
-
-      if nick in self._active_users:
-        self._answers[nick].append(message)
 
   def send_ping(self, c):
     # send a /ping command to the server and restart the timer
-    c.ping(self.channel);
+    c.ping(self.ping_channel);
     self.ping_timer = Timer(IRC_PING_INTERVAL, self.send_ping, [c]);
     self.ping_timer.start();
 
@@ -182,7 +206,7 @@ def main() :
   print "starting up..."
 
   try:
-    bot = YaCyBot(IRC_CHANNEL, IRC_NICK, IRC_SERVER, IRC_PORT)
+    bot = YaCyBot(IRC_CHANNELS, IRC_NICK, IRC_SERVER, IRC_PORT)
     bot.start()
   except KeyboardInterrupt:
     bot.shutdown()

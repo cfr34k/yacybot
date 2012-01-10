@@ -11,7 +11,12 @@
 IRC_SERVER  = "localhost" # Hostname / IP of the IRC server
 IRC_PORT    = 61234       # Port of the IRC server
 IRC_NICK    = "YaCyBot"   # Nick of the bot
-IRC_CHANNEL = "#yacytest" # The channel to join
+
+# A list of channels that should be joined. The bot will be available in all
+# channels simultaneously.
+IRC_CHANNELS = [
+  "#yacytest"
+  ]
 
 # Increase this if the server drops messages because of flood protection
 IRC_MIN_DELAY = 0.8
