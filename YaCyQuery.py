@@ -30,6 +30,14 @@ class YaCyQuery:
     # precompile the number cleanup pattern
     self.numbercleanup = re.compile('[^0-9]+')
 
+  # A safe (i.e. exception-free) function for casting numeric strings to
+  # integer
+  def _safe_cast_int(self, numstr):
+    try:
+      return int(numstr)
+    except ValueError:
+      return -1
+
   # add or change an URL parameter
   def setParam(self, key, value):
     self.urlparams[key] = value
@@ -56,7 +64,7 @@ class YaCyQuery:
     cleanedtotal = self.numbercleanup.sub('', jsonobj['channels'][0]['totalResults'])
 
     # store the relevant data in class members
-    self.totalresults = int(cleanedtotal)
+    self.totalresults = self._safe_cast_int(cleanedtotal)
     self.results = jsonobj['channels'][0]['items']
 
     return len(self.results)
