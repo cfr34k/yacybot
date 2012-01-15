@@ -35,3 +35,8 @@ YACY_DEFAULT_PARAMS = {
   'resource':       "global",
   'maximumRecords': "5"
   }
+
+# The timeout passed to urllib2.urlopen.
+# Decrease this value if the Bot is frequently disconnected by the IRC Server
+# when the YaCy peer is hanging
+URLLIB_TIMEOUT = 60

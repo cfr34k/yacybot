@@ -52,7 +52,7 @@ class YaCyQuery:
     url = 'http://' + YACY_ADDRESS + ':' + str(YACY_PORT) + '/yacysearch.json'
 
     # open the URL
-    urlobj = urllib2.urlopen(url, data)
+    urlobj = urllib2.urlopen(url, data, URLLIB_TIMEOUT)
 
     # get the JSON data
     jsondata = urlobj.read()
