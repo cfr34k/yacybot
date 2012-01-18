@@ -154,13 +154,13 @@ class YaCyBot(SingleServerIRCBot):
 
         # show the results
         self.send_msg(c, reply_to, "Queried peer's name: " + self.stats.myName)
-        self.send_msg(c, reply_to, "RWIs on this peer: " + str(self.stats.myRWIs))
-        self.send_msg(c, reply_to, "URLs on this peer: " + str(self.stats.myURLs))
-        self.send_msg(c, reply_to, "Number of known active peers: " + str(self.stats.peers))
-        self.send_msg(c, reply_to, "URLs on active peers: " + str(self.stats.allURLs))
-        self.send_msg(c, reply_to, "RWIs on active peers: " + str(self.stats.allRWIs))
-        self.send_msg(c, reply_to, "Cluster PPM: " + str(self.stats.allPPM))
-        self.send_msg(c, reply_to, "Cluster QPH: " + str(self.stats.allQPH))
+        self.send_msg(c, reply_to, "RWIs on this peer: " + self.formatNumber(self.stats.myRWIs))
+        self.send_msg(c, reply_to, "URLs on this peer: " + self.formatNumber(self.stats.myURLs))
+        self.send_msg(c, reply_to, "Number of known active peers: " + self.formatNumber(self.stats.peers))
+        self.send_msg(c, reply_to, "URLs on active peers: " + self.formatNumber(self.stats.allURLs))
+        self.send_msg(c, reply_to, "RWIs on active peers: " + self.formatNumber(self.stats.allRWIs))
+        self.send_msg(c, reply_to, "Cluster PPM: " + self.formatNumber(self.stats.allPPM))
+        self.send_msg(c, reply_to, "Cluster QPH: " + self.formatNumber(self.stats.allQPH))
 
       elif command == 'l' or command == 'license':
         self.send_multiline(c, reply_to, LICENSE)
@@ -169,6 +169,7 @@ class YaCyBot(SingleServerIRCBot):
 !help            - Show this help
 !yacy <keywords> - Search for <keywords>
 !details <N>     - Print more details for the Nth result from the last query
+!stats           - Get some statistics about the peer and the YaCy network
 !license         - Show the license for this program
 Every command can be abbreviated with a single letter (i.e. !h for !help)""")
       else:
@@ -218,6 +219,21 @@ Every command can be abbreviated with a single letter (i.e. !h for !help)""")
         str = str + "-"
 
     return str
+
+  # generate a short output of big numbers using SI prefixes
+  def formatNumber(self, number):
+    suffixes = ['', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
+
+    fnum = float(number)
+    index = 0
+    while fnum > 1000:
+      fnum /= 1000.0
+      index += 1
+
+    if index == 0:
+      return "%d" % fnum
+    else:
+      return "{0:.2f}{1}".format(fnum, suffixes[index])
 
 def main() :
   print "starting up..."

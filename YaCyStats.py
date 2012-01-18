@@ -46,7 +46,7 @@ class YaCyStats:
   def update(self):
     curTime = time.time()
 
-    if curTime - self.lastUpdate < YACY_STATS_UPDATE_INTERVAL*1000:
+    if curTime - self.lastUpdate < YACY_STATS_UPDATE_INTERVAL:
       return False
 
     url = 'http://' + YACY_ADDRESS + ':' + str(YACY_PORT) + '/Network.xml'
@@ -77,6 +77,7 @@ class YaCyStats:
     self.myURLs = int(self._getText(yourPeer.getElementsByTagName('links')[0].childNodes))
     self.myRWIs = int(self._getText(yourPeer.getElementsByTagName('words')[0].childNodes))
 
+    self.lastUpdate = time.time()
     return True
 
 if __name__ == "__main__" :
