@@ -21,6 +21,7 @@ import traceback
 import html2text
 
 from YaCyQuery import YaCyQuery
+from YaCyStats import YaCyStats
 
 from config import *
 
@@ -36,8 +37,11 @@ class YaCyBot(SingleServerIRCBot):
     self.last_queries = {} # this stores the last query for everyone who asks
                            # about results (i.e. channels and queries)
 
+    self.stats = YaCyStats() # Object for statistics about the YaCy network
+
     self.ping_timer = None # handle of the client->server ping timer
     self.ping_channel = channel_list[0] # name of the ping target
+
     print "done"
 
   def on_nicknameinuse(self, c, e) :
@@ -144,6 +148,19 @@ class YaCyBot(SingleServerIRCBot):
           self.send_msg(c, reply_to, "Date:  " + result['pubDate'])
           self.send_msg(c, reply_to, "Size:  " + result['sizename'])
           self.send_msg(c, reply_to, "Description: " + description)
+
+      elif command == 's' or command == 'stats':
+        self.stats.update()
+
+        # show the results
+        self.send_msg(c, reply_to, "Queried peer's name: " + self.stats.myName)
+        self.send_msg(c, reply_to, "RWIs on this peer: " + str(self.stats.myRWIs))
+        self.send_msg(c, reply_to, "URLs on this peer: " + str(self.stats.myURLs))
+        self.send_msg(c, reply_to, "Number of known active peers: " + str(self.stats.peers))
+        self.send_msg(c, reply_to, "URLs on active peers: " + str(self.stats.allURLs))
+        self.send_msg(c, reply_to, "RWIs on active peers: " + str(self.stats.allRWIs))
+        self.send_msg(c, reply_to, "Cluster PPM: " + str(self.stats.allPPM))
+        self.send_msg(c, reply_to, "Cluster QPH: " + str(self.stats.allQPH))
 
       elif command == 'l' or command == 'license':
         self.send_multiline(c, reply_to, LICENSE)

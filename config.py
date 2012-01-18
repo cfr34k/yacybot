@@ -36,6 +36,9 @@ YACY_DEFAULT_PARAMS = {
   'maximumRecords': "5"
   }
 
+# How often statistics are actually reloaded from the peer (in seconds)
+YACY_STATS_UPDATE_INTERVAL = 60
+
 # The timeout passed to urllib2.urlopen.
 # Decrease this value if the Bot is frequently disconnected by the IRC Server
 # when the YaCy peer is hanging
