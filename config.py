@@ -33,7 +33,8 @@ YACY_DEFAULT_PARAMS = {
   'startRecord':    "0",
   'verify':         "true",
   'resource':       "global",
-  'maximumRecords': "5"
+  'maximumRecords': "5",
+  'nav':            "none"
   }
 
 # How often statistics are actually reloaded from the peer (in seconds)
