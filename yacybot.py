@@ -101,10 +101,10 @@ class YaCyBot(SingleServerIRCBot):
       else:
         highlight_str = ""
 
-      # interpret the commands
-      if command == 'y' or command == 'yacy':
-        # build and send the query
-        try:
+      try:
+        # interpret the commands
+        if command == 'y' or command == 'yacy':
+          # build and send the query
           querystr = " ".join(params);
           query = YaCyQuery(querystr)
           numresults = query.request()
@@ -121,59 +121,59 @@ class YaCyBot(SingleServerIRCBot):
             for i in range(numresults):
               result = query.getResult(i)
               self.send_msg(c, reply_to, str(i) + ": " + result['link'])
-        except Exception as ex:
-          traceback.print_exc()
-          self.send_msg(c, reply_to, "Oops, an error occurred while processing the request:")
-          self.send_msg(c, reply_to, str(ex))
 
-      elif command == 'd' or command == 'details':
-        # check for some errors
-        if not self.last_queries[reply_to]:
-          self.send_msg(c, reply_to, "No search was requested yet or no results where returned.")
-        elif len(params) < 1:
-          self.send_msg(c, reply_to, "!details requires the result index as parameter.")
-        elif int(params[0]) >= self.last_queries[reply_to].getNumResults():
-          self.send_msg(c, reply_to, "Index is out of range (only " + str(self.last_queries[reply_to].getNumResults()) + " results found).")
-        else:
-          # everything ok -> show the requested result's details
-          resultIndex = int(params[0])
-          result = self.last_queries[reply_to].getResult(resultIndex)
+        elif command == 'd' or command == 'details':
+          # check for some errors
+          if not self.last_queries[reply_to]:
+            self.send_msg(c, reply_to, "No search was requested yet or no results where returned.")
+          elif len(params) < 1:
+            self.send_msg(c, reply_to, "!details requires the result index as parameter.")
+          elif int(params[0]) >= self.last_queries[reply_to].getNumResults():
+            self.send_msg(c, reply_to, "Index is out of range (only " + str(self.last_queries[reply_to].getNumResults()) + " results found).")
+          else:
+            # everything ok -> show the requested result's details
+            resultIndex = int(params[0])
+            result = self.last_queries[reply_to].getResult(resultIndex)
 
-          # clean up the description
-          description = html2text.html2text(result['description'])
+            # clean up the description
+            description = html2text.html2text(result['description'])
+
+            # show the results
+            self.send_msg(c, reply_to, "Title: " + result['title'])
+            self.send_msg(c, reply_to, "URL:   " + result['link'])
+            self.send_msg(c, reply_to, "Date:  " + result['pubDate'])
+            self.send_msg(c, reply_to, "Size:  " + result['sizename'])
+            self.send_msg(c, reply_to, "Description: " + description)
+
+        elif command == 's' or command == 'stats':
+          self.stats.update()
 
           # show the results
-          self.send_msg(c, reply_to, "Title: " + result['title'])
-          self.send_msg(c, reply_to, "URL:   " + result['link'])
-          self.send_msg(c, reply_to, "Date:  " + result['pubDate'])
-          self.send_msg(c, reply_to, "Size:  " + result['sizename'])
-          self.send_msg(c, reply_to, "Description: " + description)
+          self.send_msg(c, reply_to, "Queried peer's name: " + self.stats.myName)
+          self.send_msg(c, reply_to, "RWIs on this peer: " + self.formatNumber(self.stats.myRWIs))
+          self.send_msg(c, reply_to, "URLs on this peer: " + self.formatNumber(self.stats.myURLs))
+          self.send_msg(c, reply_to, "Number of known active peers: " + self.formatNumber(self.stats.peers))
+          self.send_msg(c, reply_to, "URLs on active peers: " + self.formatNumber(self.stats.allURLs))
+          self.send_msg(c, reply_to, "RWIs on active peers: " + self.formatNumber(self.stats.allRWIs))
+          self.send_msg(c, reply_to, "Cluster PPM: " + self.formatNumber(self.stats.allPPM))
+          self.send_msg(c, reply_to, "Cluster QPH: " + self.formatNumber(self.stats.allQPH))
 
-      elif command == 's' or command == 'stats':
-        self.stats.update()
-
-        # show the results
-        self.send_msg(c, reply_to, "Queried peer's name: " + self.stats.myName)
-        self.send_msg(c, reply_to, "RWIs on this peer: " + self.formatNumber(self.stats.myRWIs))
-        self.send_msg(c, reply_to, "URLs on this peer: " + self.formatNumber(self.stats.myURLs))
-        self.send_msg(c, reply_to, "Number of known active peers: " + self.formatNumber(self.stats.peers))
-        self.send_msg(c, reply_to, "URLs on active peers: " + self.formatNumber(self.stats.allURLs))
-        self.send_msg(c, reply_to, "RWIs on active peers: " + self.formatNumber(self.stats.allRWIs))
-        self.send_msg(c, reply_to, "Cluster PPM: " + self.formatNumber(self.stats.allPPM))
-        self.send_msg(c, reply_to, "Cluster QPH: " + self.formatNumber(self.stats.allQPH))
-
-      elif command == 'l' or command == 'license':
-        self.send_multiline(c, reply_to, LICENSE)
-      elif command == 'h' or command == 'help':
-        self.send_multiline(c, reply_to, u"""Here are the commands I understand:
-!help            - Show this help
-!yacy <keywords> - Search for <keywords>
-!details <N>     - Print more details for the Nth result from the last query
-!stats           - Get some statistics about the peer and the YaCy network
-!license         - Show the license for this program
-Every command can be abbreviated with a single letter (i.e. !h for !help)""")
-      else:
-        self.send_msg(c, reply_to, highlight_str + "I don't know what you mean. Please ask for !help ;-)")
+        elif command == 'l' or command == 'license':
+          self.send_multiline(c, reply_to, LICENSE)
+        elif command == 'h' or command == 'help':
+          self.send_multiline(c, reply_to, u"""Here are the commands I understand:
+  !help            - Show this help
+  !yacy <keywords> - Search for <keywords>
+  !details <N>     - Print more details for the Nth result from the last query
+  !stats           - Get some statistics about the peer and the YaCy network
+  !license         - Show the license for this program
+  Every command can be abbreviated with a single letter (i.e. !h for !help)""")
+        else:
+          self.send_msg(c, reply_to, highlight_str + "I don't know what you mean. Please ask for !help ;-)")
+      except Exception as ex:
+        traceback.print_exc()
+        self.send_msg(c, reply_to, "Oops, an error occurred while processing the request:")
+        self.send_msg(c, reply_to, str(ex))
 
 
   def send_ping(self, c):
