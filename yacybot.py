@@ -150,13 +150,13 @@ class YaCyBot(SingleServerIRCBot):
 
           # show the results
           self.send_msg(c, reply_to, "Queried peer's name: " + self.stats.myName)
-          self.send_msg(c, reply_to, "RWIs on this peer: " + self.formatNumber(self.stats.myRWIs))
-          self.send_msg(c, reply_to, "URLs on this peer: " + self.formatNumber(self.stats.myURLs))
-          self.send_msg(c, reply_to, "Number of known active peers: " + self.formatNumber(self.stats.peers))
-          self.send_msg(c, reply_to, "URLs on active peers: " + self.formatNumber(self.stats.allURLs))
-          self.send_msg(c, reply_to, "RWIs on active peers: " + self.formatNumber(self.stats.allRWIs))
-          self.send_msg(c, reply_to, "Cluster PPM: " + self.formatNumber(self.stats.allPPM))
-          self.send_msg(c, reply_to, "Cluster QPH: " + self.formatNumber(self.stats.allQPH))
+          self.send_msg(c, reply_to, "URLs on this peer:            {0:>7}".format(self.formatNumber(self.stats.myURLs)))
+          self.send_msg(c, reply_to, "RWIs on this peer:            {0:>7}".format(self.formatNumber(self.stats.myRWIs)))
+          self.send_msg(c, reply_to, "Number of known active peers: {0:>7}".format(self.formatNumber(self.stats.peers)))
+          self.send_msg(c, reply_to, "URLs on active peers:         {0:>7}".format(self.formatNumber(self.stats.allURLs)))
+          self.send_msg(c, reply_to, "RWIs on active peers:         {0:>7}".format(self.formatNumber(self.stats.allRWIs)))
+          self.send_msg(c, reply_to, "Cluster PPM:                  {0:>7}".format(self.formatNumber(self.stats.allPPM)))
+          self.send_msg(c, reply_to, "Cluster QPH:                  {0:>7}".format(self.formatNumber(self.stats.allQPH)))
 
         elif command == 'l' or command == 'license':
           self.send_multiline(c, reply_to, LICENSE)
@@ -222,7 +222,7 @@ class YaCyBot(SingleServerIRCBot):
 
   # generate a short output of big numbers using SI prefixes
   def formatNumber(self, number):
-    suffixes = ['', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
+    suffixes = [' ', 'k', 'M', 'G', 'T', 'P', 'E', 'Z', 'Y']
 
     fnum = float(number)
     index = 0
@@ -230,10 +230,7 @@ class YaCyBot(SingleServerIRCBot):
       fnum /= 1000.0
       index += 1
 
-    if index == 0:
-      return "%d" % fnum
-    else:
-      return "{0:.2f}{1}".format(fnum, suffixes[index])
+    return "{0:.2f}{1}".format(fnum, suffixes[index])
 
 def main() :
   print "starting up..."
