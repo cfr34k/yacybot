@@ -124,7 +124,7 @@ class YaCyBot(SingleServerIRCBot):
 
         elif command == 'd' or command == 'details':
           # check for some errors
-          if not self.last_queries[reply_to]:
+          if reply_to not in self.last_queries.keys():
             self.send_msg(c, reply_to, "No search was requested yet or no results where returned.")
           elif len(params) < 1:
             self.send_msg(c, reply_to, "!details requires the result index as parameter.")
